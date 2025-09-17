@@ -99,17 +99,15 @@
             background: #2a3942;
             padding: 15px;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #3b4a54;
-            flex-shrink: 0;
         }
 
         .user-info {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex: 1;
         }
 
         .avatar {
@@ -134,12 +132,19 @@
             font-size: 16px;
         }
 
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
         /* Search Section */
         .search-section {
             background: #202c33;
             padding: 15px;
             border-bottom: 1px solid #3b4a54;
-            flex-shrink: 0;
         }
 
         .search-input {
@@ -159,21 +164,11 @@
             margin-top: 5px;
         }
 
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        /* Contact List View */
+        /* Contacts List View */
         .contacts-view {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 0;
+            height: 100%;
         }
 
         .contacts-list {
@@ -209,11 +204,9 @@
 
         /* Chat View */
         .chat-view {
-            flex: 1;
             display: none;
             flex-direction: column;
-            min-height: 0;
-            position: relative;
+            height: 100%;
         }
 
         .chat-header {
@@ -223,8 +216,6 @@
             align-items: center;
             gap: 15px;
             border-bottom: 1px solid #3b4a54;
-            flex-shrink: 0;
-            z-index: 2;
         }
 
         .back-button {
@@ -242,9 +233,7 @@
             overflow-y: auto;
             background: #0b141a;
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
             position: relative;
-            min-height: 0;
         }
 
         .messages-container::-webkit-scrollbar {
@@ -260,11 +249,7 @@
             border-radius: 2px;
         }
 
-        .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #8696a0;
-        }
-
-        /* Scroll to top indicator */
+        /* Scroll Indicators */
         .scroll-indicator {
             position: absolute;
             top: 20px;
@@ -296,7 +281,6 @@
             50% { transform: translateX(-50%) translateY(-5px) scale(1.05); }
         }
 
-        /* Loading spinner for scroll */
         .scroll-loading {
             position: absolute;
             top: 50px;
@@ -331,8 +315,6 @@
             border-radius: 12px;
             word-wrap: break-word;
             clear: both;
-            opacity: 1;
-            transform: translateY(0);
         }
 
         .message.sent {
@@ -358,14 +340,14 @@
             line-height: 1.4;
         }
 
+        /* Input Section - Fixed at bottom */
         .input-section {
             background: #202c33;
             padding: 15px;
-            display: none;
+            display: flex;
             gap: 10px;
             align-items: center;
             border-top: 1px solid #3b4a54;
-            flex-shrink: 0;
         }
 
         .message-input {
@@ -415,13 +397,24 @@
             margin-bottom: 15px;
         }
 
-        /* Show/Hide Views */
-        .show-contacts .contacts-view { display: flex; }
-        .show-contacts .chat-view { display: none; }
-        .show-contacts .input-section { display: none; }
-        .show-chat .contacts-view { display: none; }
-        .show-chat .chat-view { display: flex; }
-        .show-chat .input-section { display: flex; }
+        /* View States */
+        .chat-app.show-contacts .contacts-view {
+            display: flex;
+        }
+
+        .chat-app.show-contacts .chat-view,
+        .chat-app.show-contacts .input-section {
+            display: none;
+        }
+
+        .chat-app.show-chat .contacts-view {
+            display: none;
+        }
+
+        .chat-app.show-chat .chat-view,
+        .chat-app.show-chat .input-section {
+            display: flex;
+        }
 
         /* Responsive */
         @media (max-width: 480px) {
@@ -497,8 +490,8 @@
             </div>
         </div>
 
-        <!-- Input Section - Now outside main-content -->
-        <div class="input-section" id="inputSection">
+        <!-- Input Section -->
+        <div class="input-section">
             <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
             <button class="send-button" onclick="sendMessage()">➤</button>
         </div>
@@ -526,7 +519,7 @@
             document.getElementById('chatAvatar').textContent = username.charAt(0).toUpperCase();
             document.getElementById('chatContactName').textContent = username;
             
-            // Initialize chat container with indicators only
+            // Clear messages
             const container = document.getElementById('messagesContainer');
             container.innerHTML = `
                 <div class="scroll-indicator" id="scrollIndicator">📜 Scroll ke atas untuk melihat pesan lama</div>
@@ -538,12 +531,10 @@
             loadMessages();
             clearInterval(messageInterval);
             messageInterval = setInterval(loadMessages, 2000);
-            
-            // Setup scroll listener
             setupScrollListener();
         }
 
-        // Setup scroll event listener with animations
+        // Setup scroll event listener
         function setupScrollListener() {
             const container = document.getElementById('messagesContainer');
             const indicator = document.getElementById('scrollIndicator');
@@ -554,11 +545,9 @@
                 const scrollHeight = this.scrollHeight;
                 const clientHeight = this.clientHeight;
                 
-                // Show indicator when near top
                 if (scrollTop < 100 && scrollHeight > clientHeight) {
                     indicator.classList.add('show');
                     
-                    // Bounce animation when reaching top
                     if (scrollTop <= 10 && !isScrolling) {
                         indicator.classList.add('bounce');
                         setTimeout(() => {
@@ -569,12 +558,10 @@
                     indicator.classList.remove('show');
                 }
                 
-                // Show loading animation when scrolling at top
                 if (scrollTop <= 5 && !isScrolling) {
                     isScrolling = true;
                     loading.classList.add('show');
                     
-                    // Simulate loading delay for smooth UX
                     clearTimeout(scrollTimeout);
                     scrollTimeout = setTimeout(() => {
                         loading.classList.remove('show');
@@ -803,13 +790,13 @@
         function displayMessages(messages) {
             const container = document.getElementById('messagesContainer');
             const currentScrollTop = container.scrollTop;
-            const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 30;
             
-            // Preserve scroll indicators
+            // Keep scroll indicators
             const indicator = container.querySelector('#scrollIndicator');
             const loading = container.querySelector('#scrollLoading');
             
-            // Clear messages but keep indicators
+            // Remove old messages
             const existingMessages = container.querySelectorAll('.message, div[style*="text-align:center"]');
             existingMessages.forEach(msg => msg.remove());
 
@@ -821,6 +808,7 @@
                 return;
             }
 
+            // Add messages
             messages.forEach((msg) => {
                 const div = document.createElement('div');
                 div.className = `message ${msg.from === currentUser ? 'sent' : 'received'}`;
@@ -831,14 +819,11 @@
                 container.appendChild(div);
             });
 
-            // Only auto-scroll to bottom if user was already at bottom or it's a new message
+            // Auto scroll to bottom if user was at bottom
             if (wasAtBottom) {
                 setTimeout(() => {
                     container.scrollTop = container.scrollHeight;
-                }, 50);
-            } else {
-                // Maintain current scroll position for natural scrolling
-                container.scrollTop = currentScrollTop;
+                }, 10);
             }
         }
 
@@ -864,15 +849,13 @@
                 const data = await res.json();
                 if (data.success) {
                     input.value = "";
-                    // Force scroll to bottom for new messages
-                    const container = document.getElementById('messagesContainer');
-                    const wasAtBottom = true; // Always scroll for sent messages
                     displayMessages(data.chat);
                     
-                    // Smooth scroll to bottom for sent messages
+                    // Always scroll to bottom for sent messages
+                    const container = document.getElementById('messagesContainer');
                     setTimeout(() => {
                         container.scrollTop = container.scrollHeight;
-                    }, 50);
+                    }, 10);
                 }
             } catch (err) {
                 console.error("Error sending message:", err);
