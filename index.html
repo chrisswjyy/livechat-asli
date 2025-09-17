@@ -102,6 +102,7 @@
             justify-content: between;
             align-items: center;
             border-bottom: 1px solid #3b4a54;
+            flex-shrink: 0;
         }
 
         .user-info {
@@ -138,6 +139,7 @@
             background: #202c33;
             padding: 15px;
             border-bottom: 1px solid #3b4a54;
+            flex-shrink: 0;
         }
 
         .search-input {
@@ -163,6 +165,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-height: 0;
         }
 
         /* Contact List View */
@@ -170,6 +173,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         .contacts-list {
@@ -208,7 +212,7 @@
             flex: 1;
             display: none;
             flex-direction: column;
-            height: 100%;
+            min-height: 0;
             position: relative;
         }
 
@@ -219,7 +223,7 @@
             align-items: center;
             gap: 15px;
             border-bottom: 1px solid #3b4a54;
-            position: relative;
+            flex-shrink: 0;
             z-index: 2;
         }
 
@@ -235,13 +239,12 @@
         .messages-container {
             flex: 1;
             padding: 15px;
-            padding-bottom: 90px; /* Space for input form */
             overflow-y: auto;
             background: #0b141a;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
             position: relative;
-            height: calc(100vh - 140px); /* Account for header and input */
+            min-height: 0;
         }
 
         .messages-container::-webkit-scrollbar {
@@ -336,7 +339,6 @@
             background: #005c4b;
             margin-left: auto;
             border-bottom-right-radius: 4px;
-            animation-delay: 0.1s;
         }
 
         .message.received {
@@ -359,15 +361,11 @@
         .input-section {
             background: #202c33;
             padding: 15px;
-            display: flex;
+            display: none;
             gap: 10px;
             align-items: center;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 10;
             border-top: 1px solid #3b4a54;
+            flex-shrink: 0;
         }
 
         .message-input {
@@ -434,11 +432,6 @@
             .login-box {
                 padding: 25px;
             }
-            
-            .messages-container {
-                padding-bottom: 85px; /* Adjust for smaller screens */
-                height: calc(100vh - 135px);
-            }
         }
     </style>
 </head>
@@ -501,12 +494,13 @@
                         <div class="spinner"></div>
                     </div>
                 </div>
-
-                <div class="input-section">
-                    <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
-                    <button class="send-button" onclick="sendMessage()">➤</button>
-                </div>
             </div>
+        </div>
+
+        <!-- Input Section - Now outside main-content -->
+        <div class="input-section" id="inputSection">
+            <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
+            <button class="send-button" onclick="sendMessage()">➤</button>
         </div>
     </div>
 
@@ -532,13 +526,13 @@
             document.getElementById('chatAvatar').textContent = username.charAt(0).toUpperCase();
             document.getElementById('chatContactName').textContent = username;
             
-            // Clear messages first then load
-            document.getElementById('messagesContainer').innerHTML = `
+            // Initialize chat container with indicators only
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = `
                 <div class="scroll-indicator" id="scrollIndicator">📜 Scroll ke atas untuk melihat pesan lama</div>
                 <div class="scroll-loading" id="scrollLoading">
                     <div class="spinner"></div>
                 </div>
-                <div style="text-align:center;color:#8696a0;padding:20px;">Loading...</div>
             `;
             
             loadMessages();
@@ -547,12 +541,6 @@
             
             // Setup scroll listener
             setupScrollListener();
-            
-            // Auto scroll to bottom when opening chat
-            setTimeout(() => {
-                const container = document.getElementById('messagesContainer');
-                container.scrollTop = container.scrollHeight;
-            }, 200);
         }
 
         // Setup scroll event listener with animations
@@ -814,30 +802,28 @@
 
         function displayMessages(messages) {
             const container = document.getElementById('messagesContainer');
+            const currentScrollTop = container.scrollTop;
             const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
             
             // Preserve scroll indicators
             const indicator = container.querySelector('#scrollIndicator');
             const loading = container.querySelector('#scrollLoading');
             
-            container.innerHTML = '';
-            
-            // Re-add scroll indicators
-            if (indicator) container.appendChild(indicator);
-            if (loading) container.appendChild(loading);
+            // Clear messages but keep indicators
+            const existingMessages = container.querySelectorAll('.message, div[style*="text-align:center"]');
+            existingMessages.forEach(msg => msg.remove());
 
             if (messages.length === 0) {
                 const emptyDiv = document.createElement('div');
-                emptyDiv.style.cssText = 'text-align:center;color:#8696a0;padding:20px;';
+                emptyDiv.style.cssText = 'text-align:center;color:#8696a0;padding:20px;margin-top:60px;';
                 emptyDiv.textContent = 'Belum ada pesan';
                 container.appendChild(emptyDiv);
                 return;
             }
 
-            messages.forEach((msg, index) => {
+            messages.forEach((msg) => {
                 const div = document.createElement('div');
                 div.className = `message ${msg.from === currentUser ? 'sent' : 'received'}`;
-                div.style.animationDelay = `${index * 0.05}s`;
                 div.innerHTML = `
                     <div class="message-sender">${msg.from}</div>
                     <div class="message-text">${escapeHtml(msg.message)}</div>
@@ -845,11 +831,14 @@
                 container.appendChild(div);
             });
 
-            // Auto scroll ke bawah jika user ada di bawah atau ada pesan baru
-            if (wasAtBottom || messages.length > 0) {
+            // Only auto-scroll to bottom if user was already at bottom or it's a new message
+            if (wasAtBottom) {
                 setTimeout(() => {
                     container.scrollTop = container.scrollHeight;
-                }, 100);
+                }, 50);
+            } else {
+                // Maintain current scroll position for natural scrolling
+                container.scrollTop = currentScrollTop;
             }
         }
 
@@ -875,7 +864,15 @@
                 const data = await res.json();
                 if (data.success) {
                     input.value = "";
+                    // Force scroll to bottom for new messages
+                    const container = document.getElementById('messagesContainer');
+                    const wasAtBottom = true; // Always scroll for sent messages
                     displayMessages(data.chat);
+                    
+                    // Smooth scroll to bottom for sent messages
+                    setTimeout(() => {
+                        container.scrollTop = container.scrollHeight;
+                    }, 50);
                 }
             } catch (err) {
                 console.error("Error sending message:", err);
