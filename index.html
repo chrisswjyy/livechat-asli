@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Style Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #111b21;
+            color: #e9edef;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Login Page */
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .login-box input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 25px;
+            background: #25d366;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .saved-users {
+            margin-top: 15px;
+        }
+
+        .saved-user {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Chat App */
+        .chat-app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: #2a3942;
+            padding: 15px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            border-bottom: 1px solid #3b4a54;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #25d366;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #8696a0;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: #202c33;
+            padding: 15px;
+            border-bottom: 1px solid #3b4a54;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: #2a3942;
+            border: none;
+            border-radius: 8px;
+            color: #e9edef;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Contact List View */
+        .contacts-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contacts-list {
+            flex: 1;
+            overflow-y: auto;
+            background: #202c33;
+        }
+
+        .contact {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #3b4a54;
+        }
+
+        .contact:hover {
+            background: #2a3942;
+        }
+
+        .contact .avatar {
+            margin-right: 15px;
+        }
+
+        .contact-info h4 {
+            margin-bottom: 5px;
+        }
+
+        .contact-info p {
+            color: #8696a0;
+            font-size: 14px;
+        }
+
+        /* Chat View */
+        .chat-view {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+        .chat-header {
+            background: #2a3942;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #3b4a54;
+            position: relative;
+            z-index: 2;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #e9edef;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 15px;
+            padding-bottom: 90px; /* Space for input form */
+            overflow-y: auto;
+            background: #0b141a;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            height: calc(100vh - 140px); /* Account for header and input */
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #3b4a54;
+            border-radius: 2px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #8696a0;
+        }
+
+        /* Scroll to top indicator */
+        .scroll-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(42, 57, 66, 0.9);
+            color: #8696a0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .scroll-indicator.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .scroll-indicator.bounce {
+            animation: bounceIndicator 0.6s ease;
+        }
+
+        @keyframes bounceIndicator {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+            50% { transform: translateX(-50%) translateY(-5px) scale(1.05); }
+        }
+
+        /* Loading spinner for scroll */
+        .scroll-loading {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .scroll-loading.show {
+            opacity: 1;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3b4a54;
+            border-top: 2px solid #00a884;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            max-width: 80%;
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            clear: both;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message.sent {
+            background: #005c4b;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            animation-delay: 0.1s;
+        }
+
+        .message.received {
+            background: #1f2937;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-sender {
+            font-size: 12px;
+            color: #8696a0;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .message-text {
+            line-height: 1.4;
+        }
+
+        .input-section {
+            background: #202c33;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            border-top: 1px solid #3b4a54;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            background: #2a3942;
+            border: none;
+            border-radius: 25px;
+            color: #e9edef;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .send-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #00a884;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #8696a0;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-screen h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        /* Show/Hide Views */
+        .show-contacts .contacts-view { display: flex; }
+        .show-contacts .chat-view { display: none; }
+        .show-contacts .input-section { display: none; }
+        .show-chat .contacts-view { display: none; }
+        .show-chat .chat-view { display: flex; }
+        .show-chat .input-section { display: flex; }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .message {
+                max-width: 85%;
+            }
+            
+            .login-box {
+                padding: 25px;
+            }
+            
+            .messages-container {
+                padding-bottom: 85px; /* Adjust for smaller screens */
+                height: calc(100vh - 135px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-page">
+        <div class="login-box">
+            <h2>💬 Chat App</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Masuk</button>
+            <div id="loginMsg" class="error"></div>
+            
+            <div id="savedUsers" class="saved-users" style="display:none;">
+                <h4 style="color: white; margin-bottom: 10px;">Akun Tersimpan:</h4>
+                <div id="savedUsersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat App -->
+    <div id="chatApp" class="chat-app show-contacts" style="display:none">
+        <!-- App Header -->
+        <div class="app-header">
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">U</div>
+                <h4 id="currentUserName">User</h4>
+            </div>
+            <button class="logout-btn" onclick="logout()">↩️</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Contacts View -->
+            <div class="contacts-view">
+                <div class="search-section">
+                    <input type="text" class="search-input" id="searchContact" placeholder="Cari username untuk chat" onkeypress="handleSearchEnter(event)">
+                    <div id="searchMsg" class="error"></div>
+                </div>
+
+                <div class="contacts-list" id="contactsList">
+                    <div class="welcome-screen">
+                        <h3>💬 Selamat Datang</h3>
+                        <p>Ketik username di kotak pencarian untuk memulai chat</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div class="chat-view">
+                <div class="chat-header">
+                    <button class="back-button" onclick="showContacts()">←</button>
+                    <div class="avatar" id="chatAvatar">C</div>
+                    <h3 id="chatContactName">Contact</h3>
+                </div>
+
+                <div class="messages-container" id="messagesContainer">
+                    <div class="scroll-indicator" id="scrollIndicator">📜 Scroll ke atas untuk melihat pesan lama</div>
+                    <div class="scroll-loading" id="scrollLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
+                    <button class="send-button" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://liechat.vercel.app";
+        let currentUser = "";
+        let chatWithUser = "";
+        let messageInterval;
+        let isScrolling = false;
+        let scrollTimeout;
+
+        // Navigation
+        function showContacts() {
+            document.getElementById('chatApp').className = 'chat-app show-contacts';
+            clearInterval(messageInterval);
+            chatWithUser = "";
+        }
+
+        function showChat(username) {
+            document.getElementById('chatApp').className = 'chat-app show-chat';
+            chatWithUser = username;
+            
+            document.getElementById('chatAvatar').textContent = username.charAt(0).toUpperCase();
+            document.getElementById('chatContactName').textContent = username;
+            
+            // Clear messages first then load
+            document.getElementById('messagesContainer').innerHTML = `
+                <div class="scroll-indicator" id="scrollIndicator">📜 Scroll ke atas untuk melihat pesan lama</div>
+                <div class="scroll-loading" id="scrollLoading">
+                    <div class="spinner"></div>
+                </div>
+                <div style="text-align:center;color:#8696a0;padding:20px;">Loading...</div>
+            `;
+            
+            loadMessages();
+            clearInterval(messageInterval);
+            messageInterval = setInterval(loadMessages, 2000);
+            
+            // Setup scroll listener
+            setupScrollListener();
+            
+            // Auto scroll to bottom when opening chat
+            setTimeout(() => {
+                const container = document.getElementById('messagesContainer');
+                container.scrollTop = container.scrollHeight;
+            }, 200);
+        }
+
+        // Setup scroll event listener with animations
+        function setupScrollListener() {
+            const container = document.getElementById('messagesContainer');
+            const indicator = document.getElementById('scrollIndicator');
+            const loading = document.getElementById('scrollLoading');
+            
+            container.addEventListener('scroll', function() {
+                const scrollTop = this.scrollTop;
+                const scrollHeight = this.scrollHeight;
+                const clientHeight = this.clientHeight;
+                
+                // Show indicator when near top
+                if (scrollTop < 100 && scrollHeight > clientHeight) {
+                    indicator.classList.add('show');
+                    
+                    // Bounce animation when reaching top
+                    if (scrollTop <= 10 && !isScrolling) {
+                        indicator.classList.add('bounce');
+                        setTimeout(() => {
+                            indicator.classList.remove('bounce');
+                        }, 600);
+                    }
+                } else {
+                    indicator.classList.remove('show');
+                }
+                
+                // Show loading animation when scrolling at top
+                if (scrollTop <= 5 && !isScrolling) {
+                    isScrolling = true;
+                    loading.classList.add('show');
+                    
+                    // Simulate loading delay for smooth UX
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        loading.classList.remove('show');
+                        isScrolling = false;
+                    }, 800);
+                }
+            });
+        }
+
+        // Storage functions
+        function getSavedUsers() {
+            try {
+                return JSON.parse(localStorage.getItem('savedUsers') || '{}');
+            } catch {
+                return {};
+            }
+        }
+
+        function saveUserCredentials(username, password) {
+            try {
+                const saved = getSavedUsers();
+                saved[username] = password;
+                localStorage.setItem('savedUsers', JSON.stringify(saved));
+                displaySavedUsers();
+            } catch (err) {
+                console.error('Error saving credentials:', err);
+            }
+        }
+
+        function displaySavedUsers() {
+            const saved = getSavedUsers();
+            const div = document.getElementById('savedUsers');
+            const list = document.getElementById('savedUsersList');
+            
+            if (Object.keys(saved).length > 0) {
+                div.style.display = 'block';
+                list.innerHTML = '';
+                Object.keys(saved).forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'saved-user';
+                    userDiv.innerHTML = `
+                        <span onclick="quickLogin('${user}')">${user}</span>
+                        <span onclick="removeSavedUser('${user}')" style="color:#ff6b6b;cursor:pointer;">×</span>
+                    `;
+                    list.appendChild(userDiv);
+                });
+            } else {
+                div.style.display = 'none';
+            }
+        }
+
+        function quickLogin(username) {
+            const saved = getSavedUsers();
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = saved[username] || '';
+            login();
+        }
+
+        function removeSavedUser(username) {
+            const saved = getSavedUsers();
+            delete saved[username];
+            localStorage.setItem('savedUsers', JSON.stringify(saved));
+            displaySavedUsers();
+        }
+
+        function getContacts() {
+            try {
+                return JSON.parse(localStorage.getItem(`contacts_${currentUser}`) || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function addContact(username) {
+            const contacts = getContacts();
+            if (!contacts.includes(username)) {
+                contacts.push(username);
+                localStorage.setItem(`contacts_${currentUser}`, JSON.stringify(contacts));
+            }
+        }
+
+        // Login
+        async function login() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const loginMsg = document.getElementById("loginMsg");
+
+            if (!username || !password) {
+                loginMsg.textContent = "Isi username & password";
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = username;
+                    saveUserCredentials(username, password);
+                    showChatApp();
+                } else {
+                    loginMsg.textContent = data.message || "Login gagal";
+                }
+            } catch (err) {
+                loginMsg.textContent = "Error koneksi ke server";
+                console.error('Login error:', err);
+            }
+        }
+
+        function logout() {
+            currentUser = "";
+            chatWithUser = "";
+            clearInterval(messageInterval);
+            document.getElementById("loginPage").style.display = "flex";
+            document.getElementById("chatApp").style.display = "none";
+            showContacts();
+        }
+
+        function showChatApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('chatApp').style.display = 'flex';
+            
+            document.getElementById('userAvatar').textContent = currentUser.charAt(0).toUpperCase();
+            document.getElementById('currentUserName').textContent = currentUser;
+            
+            loadContacts();
+        }
+
+        // Search and add contact
+        function handleSearchEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addNewContact();
+            }
+        }
+
+        async function addNewContact() {
+            const username = document.getElementById('searchContact').value.trim();
+            const searchMsg = document.getElementById('searchMsg');
+            
+            if (!username) {
+                searchMsg.textContent = "Masukkan username";
+                return;
+            }
+
+            if (username === currentUser) {
+                searchMsg.textContent = "Tidak bisa chat dengan diri sendiri";
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/check-user`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    addContact(username);
+                    loadContacts();
+                    showChat(username);
+                    document.getElementById('searchContact').value = "";
+                    searchMsg.textContent = "";
+                } else {
+                    searchMsg.textContent = data.message || "User tidak ditemukan";
+                }
+            } catch (err) {
+                searchMsg.textContent = "Error koneksi";
+                console.error('Add contact error:', err);
+            }
+        }
+
+        // Load contacts
+        function loadContacts() {
+            const contacts = getContacts();
+            const list = document.getElementById('contactsList');
+
+            if (contacts.length === 0) {
+                list.innerHTML = `
+                    <div class="welcome-screen">
+                        <h3>💬 Selamat Datang</h3>
+                        <p>Ketik username di kotak pencarian untuk memulai chat</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = '';
+            contacts.forEach(username => {
+                const div = document.createElement('div');
+                div.className = 'contact';
+                div.onclick = () => showChat(username);
+                div.innerHTML = `
+                    <div class="avatar">${username.charAt(0).toUpperCase()}</div>
+                    <div class="contact-info">
+                        <h4>${username}</h4>
+                        <p>Klik untuk chat</p>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // Messages
+        async function loadMessages() {
+            if (!chatWithUser) return;
+
+            try {
+                const res = await fetch(`${API_URL}/get-chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user1: currentUser, user2: chatWithUser })
+                });
+                const data = await res.json();
+                displayMessages(data.chat || []);
+            } catch (err) {
+                console.error("Error loading messages:", err);
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            
+            // Preserve scroll indicators
+            const indicator = container.querySelector('#scrollIndicator');
+            const loading = container.querySelector('#scrollLoading');
+            
+            container.innerHTML = '';
+            
+            // Re-add scroll indicators
+            if (indicator) container.appendChild(indicator);
+            if (loading) container.appendChild(loading);
+
+            if (messages.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.style.cssText = 'text-align:center;color:#8696a0;padding:20px;';
+                emptyDiv.textContent = 'Belum ada pesan';
+                container.appendChild(emptyDiv);
+                return;
+            }
+
+            messages.forEach((msg, index) => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.from === currentUser ? 'sent' : 'received'}`;
+                div.style.animationDelay = `${index * 0.05}s`;
+                div.innerHTML = `
+                    <div class="message-sender">${msg.from}</div>
+                    <div class="message-text">${escapeHtml(msg.message)}</div>
+                `;
+                container.appendChild(div);
+            });
+
+            // Auto scroll ke bawah jika user ada di bawah atau ada pesan baru
+            if (wasAtBottom || messages.length > 0) {
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                }, 100);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || !chatWithUser) return;
+
+            try {
+                const res = await fetch(`${API_URL}/send-chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ from: currentUser, to: chatWithUser, message })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    input.value = "";
+                    displayMessages(data.chat);
+                }
+            } catch (err) {
+                console.error("Error sending message:", err);
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            displaySavedUsers();
+        };
+    </script>
+</body>
+</html>
